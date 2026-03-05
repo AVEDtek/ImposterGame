@@ -6,19 +6,13 @@ const GameContext = createContext({
     players: [],
     currentPlayer: "",
     imposter: "",
-    problemTitle: "",
-    problemDifficulty: "",
-    problemDescription: "",
-    problemExamples: [],
-    problemConstraints: [],
-    problemTopics: [],
-    problemCode: "",
-    problemTests: [1, 2, 3],
+    problem: null,
+    testCycle: null,
     code: "",
     commits: [],
-    votes: [],
-    voted: "",
-    votedCorrectly: false,
+    votes: null,
+    voted: [],
+    votedCorrectly: false
 });
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
@@ -29,19 +23,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const [currentPlayer, setCurrentPlayer] = useState("");
     const [imposter, setImposter] = useState("");
 
-    const [problemTitle, setProblemTitle] = useState("");
-    const [problemDifficulty, setProblemDifficulty] = useState("");
-    const [problemDescription, setProblemDescription] = useState("");
-    const [problemExamples, setProblemExamples] = useState([]);
-    const [problemConstraints, setProblemConstraints] = useState([]);
-    const [problemTopics, setProblemTopics] = useState([]);
-    const [problemCode, setProblemCode] = useState("");
-    const [problemTests, setProblemTests] = useState([1, 2, 3]);
+    const [problem, setProblem] = useState(null);
+    const [testCycle, setTestCycle] = useState(null);
     const [code, setCode] = useState("");
 
     const [commits, setCommits] = useState([]);
-    const [votes, setVotes] = useState([]);
-    const [voted, setVoted] = useState("");
+    const [votes, setVotes] = useState(null);
+    const [voted, setVoted] = useState([]);
     const [votedCorrectly, setVotedCorrectly] = useState(false);
 
     const value = {
@@ -50,19 +38,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         players,
         currentPlayer,
         imposter,
-        problemTitle,
-        problemDifficulty,
-        problemDescription,
-        problemExamples,
-        problemConstraints,
-        problemTopics,
-        problemCode,
-        problemTests,
+        problem,
+        testCycle,
         code,
         commits,
         votes,
         voted,
-        votedCorrectly,
+        votedCorrectly
     }
 
     return (

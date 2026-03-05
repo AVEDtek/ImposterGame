@@ -21,22 +21,16 @@ Frontend -> Backend:
     Response: game-started
         playerList
         imposterId
-        problemTitle
-        problemDifficulty
-        problemDescription
-        problemExamples
-        problemConstraints
-        problemTopics
-        problemCode
-        TestInputList
-        TestExpectedOutputList
+        problem
+        testCycle
 
-    Request: run-tests
+    Request: run-test-cycle
         roomId
+        playerId
         code 
     Response: test-results # if not all tests passed
-        testPassesList
-        OutputList
+        outputList
+        passedList
     Response: start-vote # if all tests passed
         commits
 
@@ -44,17 +38,22 @@ Frontend -> Backend:
         roomId
         playerId
     Response: vote-casted
-        voteList
+        votes
 
 Backend -> Frontend
-    Message: time
-        time
+    Message: time-left
+        timeLeft
 
-    Request: turn-over
+    Request: next-turn
+    Response: next-turn
+        roomId
+        playerId
+        code
+
+    Message: switch-current-player
         currentPlayer
-    Response: 
         code
 
     Message: vote-over
-        voted
+        votedList
         votedCorrectly
