@@ -1,9 +1,11 @@
 import { useGame } from "../contexts/GameContext.tsx";
 
 export default function ImposterPanel() {
-    const {
-        problem
-    } = useGame()
+    const { problem } = useGame()
+
+    if (!problem) {
+        return null;
+    }
 
     return (
         <>
@@ -18,8 +20,8 @@ export default function ImposterPanel() {
                     <br />
                     <strong className="text-gray-300">Hint:</strong>
                     <div className="bg-gray-900 p-3 m-2 rounded-xl">
-                        {problem?.topics?.map((topic) => (
-                            <div key={topic}>
+                        {problem.topics.map((topic, index) => (
+                            <div key={index}>
                                 {topic}
                             </div>
                         )) ?? []}

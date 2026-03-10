@@ -1,22 +1,22 @@
-import { ChevronUp, ChevronDown } from "lucide-react";
-
-import Editor from "@monaco-editor/react";
-
-import ConsolePanel from "./ConsolePanel.tsx";
-
+import { useSocket } from "../contexts/SocketContext.tsx";
 import { useRoom } from "../contexts/RoomContext.tsx";
 import { useGame } from "../contexts/GameContext.tsx";
+
 import { useState } from "react";
-import { useSocket } from "../contexts/SocketContext.tsx";
+
+import Editor from "@monaco-editor/react";
+import ConsolePanel from "./ConsolePanel.tsx";
+
+import { ChevronUp, ChevronDown } from "lucide-react";
 
 export default function EditorPanel() {
-    const { send, isConnected } = useSocket();
-    const { username, roomId } = useRoom();
+    const { isConnected, send } = useSocket();
+    const { roomId, username } = useRoom();
     const { currentPlayer, code, setCode } = useGame();
 
-    const [isConsoleOpen, setIsConsoleOpen] = useState(false);
-    const [editorHeight, setEditorHeight] = useState(600);
-    const [consoleHeight, setConsoleHeight] = useState(0);
+    const [isConsoleOpen, setIsConsoleOpen] = useState<boolean>(false);
+    const [editorHeight, setEditorHeight] = useState<number>(600);
+    const [consoleHeight, setConsoleHeight] = useState<number>(0);
 
     const handleEditorChange = (code: string | undefined) => {
         if (code !== undefined) {
@@ -29,15 +29,16 @@ export default function EditorPanel() {
             console.error("Socket not connected");
             return;
         }
-
         const request = {
             type: "run-test-cycle",
             roomId: roomId,
             playerId: username,
             code: code
         }
-
         send(request);
+        if (!isConsoleOpen) {
+            toggleConsole();
+        }
     };
 
     const toggleConsole = () => {
@@ -74,6 +75,7 @@ export default function EditorPanel() {
                         />
                         <ConsolePanel
                             height={consoleHeight}
+                            isOpen={isConsoleOpen}
                             onResize={handleConsoleResize}
                         />
                         <div className="flex justify-between border-t-2 border-gray-700">
@@ -90,7 +92,7 @@ export default function EditorPanel() {
                             </div>
                             <button
                                 onClick={runCode}
-                                className="cursor-pointer w-20 m-2 p-3 rounded-xl font-bold text-sm text-gray-200 bg-purple-800 hover:bg-purple-900 transition-colors duration-300"
+                                className="cursor-pointer w-20 m-2 p-3 rounded-xl font-bold text-sm text-gray-200 bg-purple-700 hover:bg-purple-600 transition-colors duration-300"
                             >
                                 Run
                             </button>

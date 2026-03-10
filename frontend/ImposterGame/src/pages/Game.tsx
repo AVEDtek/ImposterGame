@@ -1,14 +1,15 @@
+import { useRoom } from "../contexts/RoomContext.tsx";
+import { useGame } from "../contexts/GameContext.tsx";
+
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+
 import SideBar from "../components/SideBar.tsx";
 import VoteSideBar from "../components/VoteSideBar.tsx";
 import ProblemPanel from "../components/ProblemPanel.tsx";
 import ImposterPanel from "../components/ImposterPanel.tsx";
 import EditorPanel from "../components/EditorPanel.tsx";
 import CommitPanel from "../components/CommitPanel.tsx";
-
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { useRoom } from "../contexts/RoomContext.tsx";
-import { useGame } from "../contexts/GameContext.tsx";
 
 type GameLocationState = {
     players: string[];
@@ -20,9 +21,7 @@ type GameLocationState = {
 };
 
 export default function Game() {
-    const {
-        username,
-    } = useRoom();
+    const { username } = useRoom();
 
     const {
         gameState,
@@ -32,7 +31,7 @@ export default function Game() {
         setImposter,
         setProblem,
         setTestCycle,
-        setCode,
+        setCode
     } = useGame();
 
     const location = useLocation();

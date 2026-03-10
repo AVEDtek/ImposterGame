@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+    createContext,
+    useContext,
+    useEffect,
+    useState,
+    type ReactNode
+} from "react";
 import { useSocket } from "./SocketContext";
 import { useRoom } from "./RoomContext";
 
@@ -8,70 +14,86 @@ const GameState = {
     Results: "results"
 };
 
-const defaultProblem = {
-    id: 0,
-    title: "",
-    difficulty: "",
-    description: "",
-    examples: [],
-    constraints: [],
-    topics: [],
-    code: ""
-};
-
 type GameProviderProps = {
     children: ReactNode;
 };
 
-const GameContext = createContext({
+type GameContextValue = {
+    gameState: string;
+    setGameState: React.Dispatch<React.SetStateAction<string>>;
+    time: number;
+    setTime: React.Dispatch<React.SetStateAction<number>>;
+    players: string[];
+    setPlayers: React.Dispatch<React.SetStateAction<string[]>>;
+    currentPlayer: string;
+    setCurrentPlayer: React.Dispatch<React.SetStateAction<string>>;
+    imposter: string;
+    setImposter: React.Dispatch<React.SetStateAction<string>>;
+    problem: any;
+    setProblem: React.Dispatch<React.SetStateAction<any>>;
+    testCycle: any[];
+    setTestCycle: React.Dispatch<React.SetStateAction<any[]>>;
+    code: string;
+    setCode: React.Dispatch<React.SetStateAction<string>>;
+    commits: any[];
+    setCommits: React.Dispatch<React.SetStateAction<any[]>>;
+    votes: any;
+    setVotes: React.Dispatch<React.SetStateAction<any>>;
+    voted: string[];
+    setVoted: React.Dispatch<React.SetStateAction<string[]>>;
+    votedCorrectly: boolean;
+    setVotedCorrectly: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+const GameContext = createContext<GameContextValue>({
     gameState: GameState.Coding,
     setGameState: (_gameState: React.SetStateAction<string>) => { },
     time: 0,
     setTime: (_time: React.SetStateAction<number>) => { },
-    players: [] as string[],
+    players: [],
     setPlayers: (_players: React.SetStateAction<string[]>) => { },
     currentPlayer: "",
     setCurrentPlayer: (_currentPlayer: React.SetStateAction<string>) => { },
     imposter: "",
     setImposter: (_imposter: React.SetStateAction<string>) => { },
-    problem: defaultProblem,
-    setProblem: (_problem: React.SetStateAction<typeof defaultProblem>) => { },
-    testCycle: [] as any[],
+    problem: null,
+    setProblem: (_problem: React.SetStateAction<any>) => { },
+    testCycle: [],
     setTestCycle: (_testCycle: React.SetStateAction<any[]>) => { },
     code: "",
     setCode: (_code: React.SetStateAction<string>) => { },
-    commits: [] as any[],
+    commits: [],
     setCommits: (_commits: React.SetStateAction<any[]>) => { },
-    votes: null as any,
+    votes: null,
     setVotes: (_votes: React.SetStateAction<any>) => { },
-    voted: [] as string[],
+    voted: [],
     setVoted: (_voted: React.SetStateAction<string[]>) => { },
     votedCorrectly: false,
     setVotedCorrectly: (_votedCorrectly: React.SetStateAction<boolean>) => { }
 });
 
 export default function GameProvider({ children }: GameProviderProps) {
-    const { roomId, username } = useRoom();
     const { onMessage, send } = useSocket();
+    const { roomId, username } = useRoom();
 
-    const [gameState, setGameState] = useState(GameState.Coding);
-    const [time, setTime] = useState(0);
+    const [gameState, setGameState] = useState<string>(GameState.Coding);
+    const [time, setTime] = useState<number>(0);
 
     const [players, setPlayers] = useState<string[]>([]);
-    const [currentPlayer, setCurrentPlayer] = useState("");
-    const [imposter, setImposter] = useState("");
+    const [currentPlayer, setCurrentPlayer] = useState<string>("");
+    const [imposter, setImposter] = useState<string>("");
 
-    const [problem, setProblem] = useState(defaultProblem);
+    const [problem, setProblem] = useState<any>(null);
     const [testCycle, setTestCycle] = useState<any[]>([]);
-    const [code, setCode] = useState("");
+    const [code, setCode] = useState<string>("");
 
     const [commits, setCommits] = useState<any[]>([]);
     const [votes, setVotes] = useState<any>(null);
     const [voted, setVoted] = useState<string[]>([]);
-    const [votedCorrectly, setVotedCorrectly] = useState(false);
+    const [votedCorrectly, setVotedCorrectly] = useState<boolean>(false);
 
     useEffect(() => {
-        const unsubTimeUpdate = onMessage("time-left", (data) => {
+        const unsubTimeLeft = onMessage("time-left", (data) => {
             setTime(data.timeLeft);
         });
         const unsubTurnOver = onMessage("turn-over", (data) => {
@@ -91,7 +113,7 @@ export default function GameProvider({ children }: GameProviderProps) {
             setGameState(GameState.Voting);
             setCommits(data.commits);
         });
-        const unsubVoteCast = onMessage("vote-casted", (data) => {
+        const unsubVoteCasted = onMessage("vote-casted", (data) => {
             setVotes(data.voteList);
         });
         const unsubVoteOver = onMessage("vote-over", (data) => {
@@ -100,11 +122,11 @@ export default function GameProvider({ children }: GameProviderProps) {
             setVotedCorrectly(data.votedCorrectly);
         });
         return () => {
-            unsubTimeUpdate();
+            unsubTimeLeft();
             unsubTurnOver();
             unsubNextTurn();
             unsubStartVote();
-            unsubVoteCast();
+            unsubVoteCasted();
             unsubVoteOver();
         };
     }, [onMessage, code]);

@@ -2,13 +2,13 @@ import { User } from "lucide-react";
 
 type UserCardProps = {
     username: string;
-    highlight: boolean
+    highlighted: boolean
 }
 
-export default function UserCard({ username, highlight }: UserCardProps) {
+export default function UserCard({ username, highlighted }: UserCardProps) {
     return (
         <>
-            <div className={`flex text-white mr-5 mt-3 p-3 rounded-r-xl ${highlight ? "bg-purple-700" : "bg-gray-800"}`}>
+            <div className={`flex text-white mr-5 mt-3 p-3 rounded-r-xl ${highlighted ? "bg-purple-700" : "bg-gray-800"}`}>
                 <User className="mr-3" />
                 {username}
             </div>

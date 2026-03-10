@@ -1,24 +1,30 @@
+import { useSocket } from "../contexts/SocketContext.tsx";
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSocket } from "../contexts/SocketContext.tsx";
 
 type JoinFormProps = {
   onCancelJoinClick: () => void;
 };
 
 export default function JoinForm({ onCancelJoinClick }: JoinFormProps) {
-  const { isConnected, send, onMessage } = useSocket();
-  const navigate = useNavigate();
+  const {
+    isConnected,
+    send,
+    onMessage
+  } = useSocket();
 
-  const [username, setUsername] = useState("");
-  const [roomId, setRoomId] = useState("");
+  const [username, setUsername] = useState<string>("");
+  const [roomId, setRoomId] = useState<string>("");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubRoomJoin = onMessage("room-joined", (data) => {
       navigate("/Lobby", {
         state: {
           roomId: data.roomId,
-          username: username,
+          username: data.playerId,
           players: data.playerList,
         },
       });
@@ -32,23 +38,19 @@ export default function JoinForm({ onCancelJoinClick }: JoinFormProps) {
       console.error("Username cannot be empty");
       return;
     }
-
     if (!roomId.trim()) {
       console.error("Room ID cannot be empty");
       return;
     }
-
     if (!isConnected) {
       console.error("Socket not connected");
       return;
     }
-
     const request = {
       type: "join-room",
       roomId: roomId,
       playerId: username,
     };
-
     send(request);
   }
 

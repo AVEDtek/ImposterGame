@@ -8,14 +8,14 @@ import CommitCard from "./CommitCard.tsx";
 import { useGame } from "../contexts/GameContext.tsx";
 
 export default function VersionPanel() {
-    const [highlightedCommit, setHighlightedCommit] = useState<number>(-1);
+    const [selectedCommit, setSelectedCommit] = useState<number>(-1);
 
     const {
         commits
     } = useGame();
 
     const handleCommitClick = (index: number) => {
-        setHighlightedCommit(index)
+        setSelectedCommit(index)
     };
 
     return (
@@ -32,18 +32,18 @@ export default function VersionPanel() {
                         <div className="flex flex-col items-center ">
                             {commits.map((commit, index) => (
                                 <div key={index}>
-                                    <CommitCard index={index} username={commit.player_id} isFirst={index === 0} isLast={index === commits.length - 1} highlight={index === highlightedCommit} handleCommitClick={handleCommitClick} />
+                                    <CommitCard index={index} username={commit.player_id} isFirst={index === 0} isLast={index === commits.length - 1} selected={index === selectedCommit} handleCommitClick={handleCommitClick} />
                                 </div>
                             ))}
                         </div>
 
                     </div>
-                    {highlightedCommit !== -1 ? (
+                    {selectedCommit !== -1 ? (
                         <Editor
                             height="600px"
                             width="60%"
                             defaultLanguage="python"
-                            value={commits?.[highlightedCommit]?.code}
+                            value={commits?.[selectedCommit]?.code}
                             theme="vs-dark"
                             options={{
                                 readOnly: true

@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+    createContext,
+    useContext,
+    useEffect,
+    useState,
+    type ReactNode
+} from "react";
 import { useSocket } from "./SocketContext";
 
 type RoomProviderProps = {
@@ -25,8 +31,9 @@ const RoomContext = createContext<RoomContextValue>({
 
 export default function RoomProvider({ children }: RoomProviderProps) {
     const { onMessage } = useSocket();
-    const [roomId, setRoomId] = useState("");
-    const [username, setUsername] = useState("");
+
+    const [roomId, setRoomId] = useState<string>("");
+    const [username, setUsername] = useState<string>("");
     const [players, setPlayers] = useState<string[]>([]);
 
     useEffect(() => {

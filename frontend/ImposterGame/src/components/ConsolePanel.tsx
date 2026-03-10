@@ -1,25 +1,26 @@
-import { useState, useEffect } from "react";
-
-import { GripHorizontal } from "lucide-react";
-
-import TestCard from "./TestCard.tsx";
-
 import { useGame } from "../contexts/GameContext.tsx";
 import { useSocket } from "../contexts/SocketContext.tsx";
 
+import { useState, useEffect } from "react";
+
+import TestCard from "./TestCard.tsx";
+
+import { GripHorizontal } from "lucide-react";
+
 type ConsolePanelProps = {
     height: number;
+    isOpen: boolean;
     onResize: (newHeight: number) => void;
 };
 
-export default function ConsolePanel({ height, onResize }: ConsolePanelProps) {
-    const { testCycle } = useGame();
+export default function ConsolePanel({ height, isOpen, onResize }: ConsolePanelProps) {
     const { onMessage } = useSocket();
+    const { testCycle } = useGame();
 
-    const [isResizing, setIsResizing] = useState(false);
-    const [highlightedCard, setHighlightedCard] = useState(0);
-    const [outputs, setOutputs] = useState([]);
-    const [passed, setPassed] = useState([]);
+    const [isResizing, setIsResizing] = useState<boolean>(false);
+    const [highlightedCard, setHighlightedCard] = useState<number>(0);
+    const [outputs, setOutputs] = useState<any[]>([]);
+    const [passed, setPassed] = useState<boolean[]>([]);
 
     useEffect(() => {
         const unsubTestResults = onMessage("test-results", (data) => {
@@ -67,7 +68,7 @@ export default function ConsolePanel({ height, onResize }: ConsolePanelProps) {
     return (
         <>
             <div
-                className="bg-gray-950 text-gray-200 border-t-2 border-gray-700 overflow-y-auto custom-scrollbar"
+                className={`bg-gray-950 text-gray-200 border-gray-700 overflow-y-auto custom-scrollbar ${isOpen ? "border-t-2" : "border-0"}`}
                 style={{ height: `${height}px` }}
             >
                 <div

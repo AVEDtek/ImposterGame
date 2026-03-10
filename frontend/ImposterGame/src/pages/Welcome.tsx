@@ -1,16 +1,15 @@
-import { Github } from "lucide-react";
-import { CircleQuestionMark } from "lucide-react";
-
 import { useState } from "react";
 
 import Info from "../components/Info.tsx";
 import JoinForm from "../components/JoinForm.tsx";
 import CreateForm from "../components/CreateForm.tsx"
 
+import { Github, CircleQuestionMark } from "lucide-react";
+
 export default function Welcome() {
-    const [isJoinOpen, setIsJoinOpen] = useState(false);
-    const [isInfoOpen, setIsInfoOpen] = useState(false);
-    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isJoinOpen, setIsJoinOpen] = useState<boolean>(false);
+    const [isInfoOpen, setIsInfoOpen] = useState<boolean>(false);
+    const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
 
     return (
         <>

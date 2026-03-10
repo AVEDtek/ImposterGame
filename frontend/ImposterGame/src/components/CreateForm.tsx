@@ -1,16 +1,22 @@
+import { useSocket } from "../contexts/SocketContext.tsx";
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSocket } from "../contexts/SocketContext.tsx";
 
 type CreateFormProps = {
   onCancelCreateClick: () => void;
 };
 
 export default function CreateForm({ onCancelCreateClick }: CreateFormProps) {
-  const { isConnected, send, onMessage } = useSocket();
+  const {
+    isConnected,
+    send,
+    onMessage
+  } = useSocket();
+
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState<string>("");
 
   useEffect(() => {
     const unsubRoomCreate = onMessage("room-created", (data) => {
@@ -31,17 +37,14 @@ export default function CreateForm({ onCancelCreateClick }: CreateFormProps) {
       console.error("Username cannot be empty");
       return;
     }
-
     if (!isConnected) {
       console.error("Socket not connected");
       return;
     }
-
     const request = {
       type: "create-room",
       playerId: username,
     };
-
     send(request);
   }
 

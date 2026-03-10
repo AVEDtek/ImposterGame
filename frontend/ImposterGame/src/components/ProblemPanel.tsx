@@ -1,9 +1,11 @@
 import { useGame } from "../contexts/GameContext.tsx";
 
 export default function ProblemPanel() {
-    const {
-        problem,
-    } = useGame();
+    const { problem } = useGame();
+
+    if (!problem || problem.title === "" || problem.description === "") {
+        return null;
+    }
 
     return (
         <>
@@ -16,15 +18,15 @@ export default function ProblemPanel() {
                     <br />
                     <br />
                     <strong className="text-gray-300">Examples:</strong>
-                    {problem.examples.map((example) => (
-                        <div key={example} className="bg-gray-900 p-3 m-2 rounded-xl">
+                    {problem.examples.map((example, index) => (
+                        <div key={index} className="bg-gray-900 p-3 m-2 rounded-xl">
                             {example}
                         </div>
                     ))}
                     <br />
                     <strong className="text-gray-300">Constraints:</strong>
-                    {problem.constraints.map((constraint) => (
-                        <div key={constraint} className="bg-gray-900 p-3 m-2 rounded-xl">
+                    {problem.constraints.map((constraint, index) => (
+                        <div key={index} className="bg-gray-900 p-3 m-2 rounded-xl">
                             {constraint}
                         </div>
                     ))}

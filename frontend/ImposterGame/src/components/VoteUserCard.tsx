@@ -3,16 +3,16 @@ import { User } from "lucide-react";
 type VoteUserCardProps = {
     username: string;
     votes: number;
-    highlight: boolean;
+    selected: boolean;
     handleCardClick: (username: string) => void;
 }
 
-export default function UserCard({ username, votes, highlight, handleCardClick }: VoteUserCardProps) {
+export default function VoteUserCard({ username, votes, selected, handleCardClick }: VoteUserCardProps) {
     return (
         <>
             <div
                 onClick={() => handleCardClick(username)}
-                className={`flex items-center cursor-pointer text-white mr-5 mt-3 p-3 rounded-r-xl ${highlight ? "bg-purple-700" : "bg-gray-800"
+                className={`flex items-center cursor-pointer text-white mr-5 mt-3 p-3 rounded-r-xl transition-colors duration-300 ${selected ? "bg-purple-700" : "bg-gray-800"} ${selected ? "hover:bg-purple-600" : "hover:bg-gray-700"}
                     }`}
             >
                 <User className="mr-3" />

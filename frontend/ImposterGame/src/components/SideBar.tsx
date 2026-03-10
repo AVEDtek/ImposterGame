@@ -1,12 +1,12 @@
-import UserCard from "./UserCard.tsx";
-
 import { useGame } from "../contexts/GameContext.tsx";
+
+import UserCard from "./UserCard.tsx";
 
 export default function SideBar() {
     const {
+        time,
         players,
-        currentPlayer,
-        time
+        currentPlayer
     } = useGame();
 
     return (
@@ -19,9 +19,9 @@ export default function SideBar() {
                         {Math.floor(time / 60)}:{String(time % 60).padStart(2, '0')}
                     </strong>
                 </div>
-                {players.map((player) => (
-                    <div key={player}>
-                        <UserCard username={player} highlight={player === currentPlayer} />
+                {players.map((player, index) => (
+                    <div key={index}>
+                        <UserCard username={player} highlighted={player === currentPlayer} />
                     </div>
                 ))}
             </div>

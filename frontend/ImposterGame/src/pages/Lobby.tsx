@@ -1,10 +1,10 @@
+import { useSocket } from "../contexts/SocketContext.tsx";
+import { useRoom } from "../contexts/RoomContext.tsx";
+
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import LobbyUserCard from "../components/LobbyUserCard.tsx";
 
-import { useRoom } from "../contexts/RoomContext.tsx";
-import { useGame } from "../contexts/GameContext.tsx";
-import { useSocket } from "../contexts/SocketContext.tsx";
+import LobbyUserCard from "../components/LobbyUserCard.tsx";
 
 type LobbyLocationState = {
   roomId: string;
@@ -13,15 +13,23 @@ type LobbyLocationState = {
 };
 
 export default function Lobby() {
-  const { send, onMessage, isConnected } = useSocket();
-  const { roomId, setRoomId, username, setUsername, players, setPlayers } = useRoom();
+  const {
+    send,
+    onMessage,
+    isConnected
+  } = useSocket();
+  const {
+    roomId,
+    setRoomId,
+    username,
+    setUsername,
+    players,
+    setPlayers
+  } = useRoom();
+
   const navigate = useNavigate();
   const location = useLocation();
   const navState = location.state as LobbyLocationState;
-
-  const {
-
-  } = useGame();
 
   useEffect(() => {
     const unsubGameStart = onMessage("game-started", (data) => {
@@ -80,18 +88,18 @@ export default function Lobby() {
             <h1 className="text-gray-200 font-bold m-7 text-2xl">
               Players
             </h1>
-            {players.map((player) => (
-              <div key={player}>
+            {players.map((player, index) => (
+              <div key={index}>
                 <LobbyUserCard username={player} highlight={player === username} />
               </div>
             ))}
           </div>
           <div className="flex flex-col justify-between w-[20%] border-2 border-gray-700 text-gray-200 rounded-xl m-1 bg-gray-900 my-10 h-[500px]">
-            <div>
-              <h1 className="text-gray-300 font-bold mx-7 mt-7 text-xl">
+            <div className="flex items-center gap-2 mx-7 mt-7">
+              <h1 className="text-gray-300 font-bold text-xl">
                 Room Code:
               </h1>
-              <h1 onClick={copyCode} className="text-purple-600 font-bold mx-7 text-xl cursor-pointer rounded-xl">
+              <h1 onClick={copyCode} className="text-purple-600 font-bold text-xl cursor-pointer rounded-xl hover:text-purple-500 transition-colors duration-300">
                 {roomId}
               </h1>
             </div>

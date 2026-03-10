@@ -1,25 +1,25 @@
-import VoteUserCard from "./VoteUserCard.tsx";
-
-import { useState } from "react";
-
 import { useSocket } from "../contexts/SocketContext.tsx";
 import { useGame } from "../contexts/GameContext.tsx";
 import { useRoom } from "../contexts/RoomContext.tsx";
 
+import { useState } from "react";
+
+import VoteUserCard from "./VoteUserCard.tsx";
+
 export default function VoteBar() {
     const { send, isConnected } = useSocket();
     const { roomId, username } = useRoom();
-    const [voted, setVoted] = useState(false);
-    const [highlightedCard, setHighlightedCard] = useState("");
-
     const {
         time,
         players,
         votes
     } = useGame();
 
+    const [voted, setVoted] = useState<boolean>(false);
+    const [selectedUser, setSelectedUser] = useState<string>("");
+
     const handleCardClick = (username: string) => {
-        setHighlightedCard(username)
+        setSelectedUser(username)
     };
 
     const castVote = () => {
@@ -27,15 +27,16 @@ export default function VoteBar() {
             console.error("Socket not connected");
             return;
         }
-
         const request = {
             type: "cast-vote",
             roomId: roomId,
-            playerId: highlightedCard
+            playerId: selectedUser
         };
         send(request);
         setVoted(true);
     };
+
+    const canVote = !voted && selectedUser !== "" && selectedUser !== username;
 
     return (
         <>
@@ -48,17 +49,17 @@ export default function VoteBar() {
                             {Math.floor(time / 60)}:{String(time % 60).padStart(2, '0')}
                         </strong>
                     </div>
-                    {players.map((player) => (
-                        <div key={player}>
-                            <VoteUserCard username={player} votes={votes?.[player] ?? 0} highlight={player === highlightedCard} handleCardClick={handleCardClick} />
+                    {players.map((player, index) => (
+                        <div key={index}>
+                            <VoteUserCard username={player} votes={votes?.[player] ?? 0} selected={player === selectedUser} handleCardClick={handleCardClick} />
                         </div>
                     ))}
                 </div>
                 <div className="flex justify-end">
                     <button
                         onClick={castVote}
-                        className="cursor-pointer w-20 m-2 mt-60 p-3 rounded-xl font-bold text-sm text-gray-200 bg-purple-800 hover:bg-purple-700 transition-colors duration-300 disabled:bg-gray-700 disabled:cursor-not-allowed"
-                        disabled={voted || highlightedCard === ""}
+                        className="cursor-pointer w-20 m-2 mt-60 p-3 rounded-xl font-bold text-sm text-gray-200 bg-purple-700 hover:bg-purple-600 transition-colors duration-300 disabled:bg-gray-700 disabled:cursor-not-allowed"
+                        disabled={!canVote}
                     >
                         Vote
                     </button>

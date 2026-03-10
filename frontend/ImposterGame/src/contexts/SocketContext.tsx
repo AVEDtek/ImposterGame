@@ -1,14 +1,18 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useState,
+  useEffect,
   useCallback,
   useRef,
-  type ReactNode,
+  type ReactNode
 } from "react";
 
 type MessageListener = (data: any) => void;
+
+type SocketProviderProps = {
+  children: ReactNode;
+};
 
 type SocketContextValue = {
   socket: WebSocket | null;
@@ -18,22 +22,18 @@ type SocketContextValue = {
   onMessage: (messageType: string, listener: MessageListener) => () => void;
 };
 
-type SocketProviderProps = {
-  children: ReactNode;
-};
-
 const SocketContext = createContext<SocketContextValue>({
   socket: null,
   isConnected: false,
   error: "",
   send: () => { },
-  onMessage: () => () => { },
+  onMessage: () => () => { }
 });
 
 export default function SocketProvider({ children }: SocketProviderProps) {
   const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [error, setError] = useState("");
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
   const listenersRef = useRef<Map<string, Set<MessageListener>>>(new Map());
 
   useEffect(() => {
@@ -114,7 +114,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     isConnected,
     error,
     send,
-    onMessage,
+    onMessage
   };
 
   return (
