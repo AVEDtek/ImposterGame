@@ -48,10 +48,12 @@ export default function CreateForm({ onCancelCreateClick }: CreateFormProps) {
     send(request);
   }
 
+  const canCreate = username.trim() !== "";
+
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center">
-        <form className="bg-brand-gray rounded-lg border border-gray-700 w-100 h-52" autoComplete="off">
+        <form className="bg-brand-gray rounded-lg border border-gray-700 w-100 h-auto" autoComplete="off">
           <h1 className="text-white text-l font-bold m-5">Create Room</h1>
 
           <div className="flex flex-col m-5">
@@ -78,7 +80,8 @@ export default function CreateForm({ onCancelCreateClick }: CreateFormProps) {
             <button
               type="button"
               onClick={onCreateClick}
-              className="cursor-pointer w-20 p-3 m-2 rounded-xl font-bold text-xs text-gray-200 bg-purple-700 hover:bg-purple-600 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`cursor-pointer w-20 p-3 m-2 rounded-xl font-bold text-xs text-gray-200 bg-purple-700 ${canCreate ? "hover:bg-purple-600" : ""} transition-colors duration-300 disabled:opacity-75 disabled:cursor-default`}
+              disabled={!canCreate}
             >
               Create
             </button>

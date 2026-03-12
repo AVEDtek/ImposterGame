@@ -40,7 +40,7 @@ export default function VoteBar({ voting }: VoteBarProps) {
         setVoted(true);
     };
 
-    const canVote = !voted && selectedUser !== "" && selectedUser !== username;
+    const canVote = !voted && selectedUser !== "";
 
     return (
         <>
@@ -58,17 +58,25 @@ export default function VoteBar({ voting }: VoteBarProps) {
                         ) :
                             "Voting has ended."}
                     </div>
-                    {players.map((player, index) => (
-                        <div key={index}>
-                            <VoteUserCard username={player} votes={votes?.[player] ?? 0} selected={player === selectedUser} handleCardClick={handleCardClick} />
-                        </div>
-                    ))}
+                    <div className="pr-5">
+                        {players.map((player, index) => (
+                            <div key={index}>
+                                <VoteUserCard
+                                    username={player}
+                                    votes={votes?.[player] ?? 0}
+                                    selected={player === selectedUser}
+                                    disabled={!voting || voted || player === username}
+                                    handleCardClick={handleCardClick}
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
                 <div className="flex justify-end">
                     {voting ?
                         <button
                             onClick={castVote}
-                            className="cursor-pointer w-20 m-2 mt-60 p-3 rounded-xl font-bold text-sm text-gray-200 bg-purple-700 hover:bg-purple-600 transition-colors duration-300 disabled:bg-gray-700 disabled:cursor-not-allowed"
+                            className={`cursor-pointer w-20 m-2 mt-60 p-3 rounded-xl font-bold text-sm text-gray-200 bg-purple-700 ${canVote ? 'hover:bg-purple-600' : ''} transition-colors duration-300 disabled:cursor-default disabled:opacity-75`}
                             disabled={!canVote}
                         >
                             Vote

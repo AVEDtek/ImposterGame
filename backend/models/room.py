@@ -13,12 +13,21 @@ class Room:
         player = Player(player_id, websocket)
         self.players.append(player)
 
+    def remove_player(self, player_id):
+        self.players = [player for player in self.players if player.id != player_id]
+
     def create_game(self):
         self.game = Game(self.players, self)
         return self.game
 
     def get_players_ids(self):
         return [player.id for player in self.players]
+
+    def player_exists(self, player_id):
+        return any(player.id == player_id for player in self.players)
+
+    def get_number_of_players(self):
+        return len(self.players)
     
     def game_started(self):
         return self.game is not None

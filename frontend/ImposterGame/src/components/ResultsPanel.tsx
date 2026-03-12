@@ -22,7 +22,7 @@ export default function ResultsPanel() {
         <>
             <div className="w-[35%] max-h-[85vh] min-w-[315px] bg-brand-gray rounded-xl my-3 border-2 border-gray-700 text-center flex min-h-0 flex-col self-stretch">
                 <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-7 py-10">
-                    <h1 className="text-purple-700 font-bold text-3xl">
+                    <h1 className="text-gray-200 font-bold text-3xl">
                         {votedCorrectly ? (imposter === username ? "You got caught!" : "You caught the imposter!") : (imposter === username ? "You got away!" : "The imposter got away!")}
                     </h1>
                     <div className="mt-7 text-gray-400">

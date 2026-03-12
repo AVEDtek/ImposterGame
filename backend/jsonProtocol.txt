@@ -18,6 +18,10 @@ Frontend -> Backend:
         playerId
         playerList
 
+    Message: leave-room
+        roomId
+        playerId
+
     Request: start-game
         roomId
     Response: game-started
@@ -52,7 +56,7 @@ Frontend -> Backend:
         votes
 
 Backend -> Frontend
-    Message: player-joined
+    Message: players-update
         playerList
 
     Message: time-left

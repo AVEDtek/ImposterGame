@@ -143,14 +143,7 @@ class Game:
                     "type": "turn-over"
                 }))
             elif self.state == GameState.VOTING:
-                self.set_results()
-                await self.stop_timer()
-                response = {
-                    "type": "vote-over",
-                    "voted": self.get_voted(),
-                    "votedCorrectly": self.get_imposter_id() in self.get_voted()
-                }
-                await self.room.broadcast(response)
+                await self.set_results()
         except asyncio.CancelledError:
             pass
 
@@ -172,8 +165,15 @@ class Game:
         await asyncio.create_task(self.stop_timer())
         self.timer_task = asyncio.create_task(self.start_timer(20))
 
-    def set_results(self):
+    async def set_results(self):
         self.state = GameState.RESULTS
+        await self.stop_timer()
+        response = {
+            "type": "vote-over",
+            "voted": self.get_voted(),
+            "votedCorrectly": self.get_imposter_id() in self.get_voted()
+        }
+        await self.room.broadcast(response)
 
     def get_player_ids(self):
         return [player.id for player in self.players]
@@ -195,3 +195,6 @@ class Game:
     
     def get_votes(self):
         return {player.id: player.votes for player in self.players}
+
+    def get_number_of_votes(self):
+        return sum(player.votes for player in self.players)

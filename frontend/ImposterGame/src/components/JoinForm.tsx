@@ -14,6 +14,7 @@ export default function JoinForm({ onCancelJoinClick }: JoinFormProps) {
     onMessage
   } = useSocket();
 
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [roomId, setRoomId] = useState<string>("");
 
@@ -30,18 +31,17 @@ export default function JoinForm({ onCancelJoinClick }: JoinFormProps) {
       });
     });
 
-    return () => unsubRoomJoin();
+    const unsubUnableToJoin = onMessage("unable-to-join", (data) => {
+      setErrorMessage(data.errorMessage);
+    });
+
+    return () => {
+      unsubRoomJoin();
+      unsubUnableToJoin();
+    };
   }, [onMessage, navigate, username]);
 
   function onJoinClick() {
-    if (!username.trim()) {
-      console.error("Username cannot be empty");
-      return;
-    }
-    if (!roomId.trim()) {
-      console.error("Room ID cannot be empty");
-      return;
-    }
     if (!isConnected) {
       console.error("Socket not connected");
       return;
@@ -54,10 +54,12 @@ export default function JoinForm({ onCancelJoinClick }: JoinFormProps) {
     send(request);
   }
 
+  const canJoin = username.trim() !== "" && roomId.trim() !== "";
+
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center">
-        <form className="bg-brand-gray rounded-lg border border-gray-700 w-100 h-72" autoComplete="off">
+        <form className="bg-brand-gray rounded-lg border border-gray-700 w-100 h-auto" autoComplete="off">
           <h1 className="text-white text-l font-bold m-5">Join Room</h1>
 
           <div className="flex flex-col m-5">
@@ -84,6 +86,12 @@ export default function JoinForm({ onCancelJoinClick }: JoinFormProps) {
             />
           </div>
 
+          {errorMessage && (
+            <div className="text-red-500 text-sm mx-5">
+              {errorMessage}
+            </div>
+          )}
+
           <div className="flex justify-end">
             <button
               type="button"
@@ -96,7 +104,8 @@ export default function JoinForm({ onCancelJoinClick }: JoinFormProps) {
             <button
               type="button"
               onClick={onJoinClick}
-              className="cursor-pointer w-20 p-3 m-2 rounded-xl font-bold text-xs text-gray-200 bg-purple-700 hover:bg-purple-600 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`cursor-pointer w-20 p-3 m-2 rounded-xl font-bold text-xs text-gray-200 bg-purple-700 ${canJoin ? "hover:bg-purple-600" : ""} transition-colors duration-300 disabled:opacity-75 disabled:cursor-default`}
+              disabled={!canJoin}
             >
               Join
             </button>

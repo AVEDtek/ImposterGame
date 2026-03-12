@@ -53,10 +53,37 @@ async def handler(websocket):
                     continue
 
                 if not room_manager.room_exists(room_id):
-                    await websocket.send("No room found: " + room_id)
+                    response = {
+                        "type": "unable-to-join",
+                        "errorMessage": "Room does not exist"
+                    }
+                    await websocket.send(json.dumps(response))
                     continue
 
                 room = room_manager.get_room(room_id)
+
+                if room.game_started():
+                    response = {
+                        "type": "unable-to-join",
+                        "errorMessage": "Game in progress"
+                    }
+                    await websocket.send(json.dumps(response))
+                    continue
+                if room.player_exists(player_id):
+                    response = {
+                        "type": "unable-to-join",
+                        "errorMessage": "Username already taken in room"
+                    }
+                    await websocket.send(json.dumps(response))
+                    continue
+                if room.get_number_of_players() >= 5:
+                    response = {
+                        "type": "unable-to-join",
+                        "errorMessage": "Room is full"
+                    }
+                    await websocket.send(json.dumps(response))
+                    continue
+
                 room.add_player(player_id, websocket)
 
                 response = {
@@ -68,7 +95,37 @@ async def handler(websocket):
                 await websocket.send(json.dumps(response))
 
                 response = {
-                    "type": "player-joined",
+                    "type": "players-update",
+                    "playerList": room.get_players_ids()
+                }
+                await room.broadcast(response)
+
+            elif msg_type == "leave-room":
+                try:
+                    room_id = data["roomId"]
+                except KeyError:
+                    await websocket.send("Missing room ID")
+                    continue
+                try:
+                    player_id = data["playerId"]
+                except KeyError:
+                    await websocket.send("Missing player ID")
+                    continue
+
+                if not room_manager.room_exists(room_id):
+                    await websocket.send("No room found: " + room_id)
+                    continue
+
+                room = room_manager.get_room(room_id)
+                if not room.player_exists(player_id):
+                    await websocket.send("Player not found in room: " + player_id)
+                    continue
+
+                room = room_manager.get_room(room_id)
+                room.remove_player(player_id)
+
+                response = {
+                    "type": "players-update",
                     "playerList": room.get_players_ids()
                 }
                 await room.broadcast(response)
@@ -107,6 +164,39 @@ async def handler(websocket):
                 await room.broadcast(response)
 
                 game.timer_task = asyncio.create_task(game.start_timer(30))
+
+            elif msg_type == "next-turn":
+                try:
+                    room_id = data["roomId"]
+                except KeyError:
+                    await websocket.send("Missing room ID")
+                    continue
+                try:
+                    player_id = data["playerId"]
+                except KeyError:
+                    await websocket.send("Missing player ID")
+                    continue
+                try:
+                    code = data["code"]
+                except KeyError:
+                    await websocket.send("Missing code")
+                    continue
+
+                room = room_manager.get_room(room_id)
+                game = room.get_game()
+
+                if game.state != "coding":
+                    await websocket.send("Coding not in progress")
+                    continue
+
+                await game.next_turn(player_id, code)
+
+                response = {
+                    "type": "next-turn",
+                    "currentPlayer": game.players[game.current_player_idx].id,
+                    "code": code
+                }
+                await room.broadcast(response)
             
             elif msg_type == "run-test-cycle":
                 try:
@@ -180,48 +270,8 @@ async def handler(websocket):
                 }
                 await room.broadcast(response)
 
-            elif msg_type == "next-turn":
-                try:
-                    room_id = data["roomId"]
-                except KeyError:
-                    await websocket.send("Missing room ID")
-                    continue
-                try:
-                    player_id = data["playerId"]
-                except KeyError:
-                    await websocket.send("Missing player ID")
-                    continue
-                try:
-                    code = data["code"]
-                except KeyError:
-                    await websocket.send("Missing code")
-                    continue
-
-                room = room_manager.get_room(room_id)
-                game = room.get_game()
-
-                if game.state != "coding":
-                    await websocket.send("Coding not in progress")
-                    continue
-
-                await game.next_turn(player_id, code)
-
-                response = {
-                    "type": "next-turn",
-                    "currentPlayer": game.players[game.current_player_idx].id,
-                    "code": code
-                }
-                await room.broadcast(response)
-
-            elif msg_type == "test":
-                room_id = room_manager.create_room()
-                print("Created room with ID: " + room_id)
-                room = room_manager.get_room(room_id)
-                room.add_player("james", websocket)
-                room.add_player("abdou", websocket)
-                print("Added players: " + ", ".join(room.get_players_ids()))
-                game = room.create_game()
-                game.set_voting("james", "print('hello world')")
+                if game.get_number_of_votes() == room.get_number_of_players():
+                    await game.set_results()
             
             else:
                 await websocket.send(f"Unknown message type: {msg_type}")
