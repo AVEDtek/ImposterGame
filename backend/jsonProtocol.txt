@@ -17,6 +17,8 @@ Frontend -> Backend:
         roomId
         playerId
         playerList
+    Response: unable-to-join
+        errorMessage
 
     Message: leave-room
         roomId
@@ -35,6 +37,7 @@ Frontend -> Backend:
         playerId
         code 
     Response: test-results # if not all tests passed
+        error
         outputList
         passedList
     Response: start-vote # if all tests passed

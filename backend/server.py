@@ -1,4 +1,5 @@
 import asyncio
+from unittest import result
 import websockets
 import json
 from backend.managers.roomManager import RoomManager
@@ -222,11 +223,26 @@ async def handler(websocket):
                     await websocket.send("Coding not in progress")
                     continue
 
-                outputs, passed, all_passed = game.run_tests(code)
+                results = game.run_tests(code)
+
+                if results.returncode != 0:
+                    outputs, passed = [results.stderr] * len(game.get_test_cycle()), [False] * len(game.get_test_cycle())
+                    response = {
+                        "type": "test-results",
+                        "error": True,
+                        "outputList": outputs,
+                        "passedList": passed
+                    }
+
+                    await websocket.send(json.dumps(response))
+                    continue
+
+                outputs, passed, all_passed = game.parse_results(results)
 
                 if not all_passed:
                     response = {
                         "type": "test-results",
+                        "error": False,
                         "outputList": outputs,
                         "passedList": passed
                     }

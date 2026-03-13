@@ -95,9 +95,7 @@ class Game:
         self.commits.append(commit)
 
     def run_tests(self, code):
-        result = self.test_runner.run_tests(code)
-        outputs, passed, all_passed = self.parse_results(result)
-        return outputs, passed, all_passed
+        return self.test_runner.run_tests(code)
 
     def parse_results(self, result):
         try:
@@ -107,7 +105,7 @@ class Game:
             all_passed = all(passed)
             return outputs, passed, all_passed
         except json.JSONDecodeError:
-            return None, None, False
+            return [None] * len(self.test_cycle), [False] * len(self.test_cycle), False
 
     def cast_vote(self, player_id):
         for player in self.players:

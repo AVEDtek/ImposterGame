@@ -115,17 +115,17 @@ export default function Lobby() {
                 Room Details
               </h1>
               <div className="flex items-center gap-2">
-                <h1 className="text-gray-400 font-bold text-xl">
+                <h1 className="text-gray-400 text-xl">
                   Room Code:
                 </h1>
-                <h1 onClick={copyCode} className="text-purple-600 font-bold text-xl cursor-pointer rounded-xl hover:text-purple-500 transition-colors duration-300">
+                <h1 onClick={copyCode} className="text-purple-600 text-xl cursor-pointer rounded-xl hover:text-purple-500 transition-colors duration-300">
                   {roomId}
                 </h1>
               </div>
-              <h1 className="text-gray-400 font-bold text-xl">
+              <h1 className="text-gray-400 text-xl">
                 Host: {players[0]}
               </h1>
-              <h1 className="text-gray-400 font-bold text-xl">
+              <h1 className="text-gray-400 text-xl">
                 Players: {players.length}/5
               </h1>
             </div>

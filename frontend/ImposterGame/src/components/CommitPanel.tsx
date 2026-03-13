@@ -20,7 +20,7 @@ export default function VersionPanel() {
 
     return (
         <>
-            <div className="w-[50%] max-h-[85vh] min-w-[450px] rounded-xl bg-brand-gray border-2 border-gray-700 m-3 flex min-h-0 flex-col">
+            <div className="w-[50%] max-h-[85vh] min-w-[450px] rounded-xl bg-brand-gray border-2 border-gray-700 m-3 flex min-h-0 flex-1 flex-col">
                 <div className="border-b-2 border-gray-700 h-5">
                 </div>
                 <div className="flex min-h-0 flex-1">
