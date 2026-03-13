@@ -65,7 +65,7 @@ export default function VoteBar({ voting }: VoteBarProps) {
                             <div className="mt-3 h-1.5 w-full rounded-full bg-gray-700 overflow-hidden">
                                 <div
                                     className="h-full bg-purple-600 transition-all duration-1000"
-                                    style={{ width: `${((time % 60) / 60) * 100}%` }}
+                                    style={{ width: `${(time / 120) * 100}%` }}
                                 />
                             </div>
                         </>
