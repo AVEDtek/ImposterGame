@@ -1,10 +1,12 @@
+import { useSocket } from "../contexts/SocketContext.tsx";
 import { useRoom } from "../contexts/RoomContext.tsx";
 import { useGame } from "../contexts/GameContext.tsx";
 
 import { useNavigate } from "react-router-dom";
 
 export default function ResultsPanel() {
-    const { username } = useRoom();
+    const { send, isConnected } = useSocket();
+    const { roomId, username } = useRoom();
     const {
         imposter,
         voted,
@@ -12,6 +14,20 @@ export default function ResultsPanel() {
     } = useGame();
 
     const navigate = useNavigate();
+
+    const onMainMenuClick = () => {
+        if (!isConnected) {
+            console.error("Socket not connected");
+            return;
+        }
+        const request = {
+            type: "leave-room",
+            roomId: roomId,
+            playerId: username
+        };
+        send(request);
+        navigate("/");
+    }
 
     const isImposter = imposter === username;
     const won = (votedCorrectly && !isImposter) || (!votedCorrectly && isImposter);
@@ -60,7 +76,7 @@ export default function ResultsPanel() {
                 <div className="flex justify-center px-6 pb-6">
                     <button
                         type="button"
-                        onClick={() => navigate("/")}
+                        onClick={() => onMainMenuClick()}
                         className="cursor-pointer w-full rounded-xl bg-purple-700 p-3 text-sm font-bold text-white transition-all duration-200 hover:bg-purple-600 active:scale-95">
                         Back to Main Menu
                     </button>
