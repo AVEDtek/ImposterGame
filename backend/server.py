@@ -1,6 +1,7 @@
 import asyncio
 import websockets
 import json
+import os
 from backend.managers.roomManager import RoomManager
 
 room_manager = RoomManager()
@@ -409,9 +410,12 @@ async def handler(websocket):
                 }
                 await room.broadcast(response)
 
-async def main():  
-    async with websockets.serve(handler, "0.0.0.0", 8765):
-        print("Running on ws://0.0.0.0:8765")
-        await asyncio.Future() 
+async def main():
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", "8765"))
+
+    async with websockets.serve(handler, host, port):
+        print(f"Running on ws://{host}:{port}")
+        await asyncio.Future()
 
 asyncio.run(main())

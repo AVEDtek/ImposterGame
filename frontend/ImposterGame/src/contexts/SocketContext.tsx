@@ -37,9 +37,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const listenersRef = useRef<Map<string, Set<MessageListener>>>(new Map());
 
   useEffect(() => {
-    console.log("Attempting to connect to ws://localhost:8765");
+    console.log("Attempting to connect to server");
 
-    const ws = new WebSocket("ws://localhost:8765");
+    const wsUrl = import.meta.env.VITE_BACKEND_URL;
+    const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       console.log("WebSocket connected");
