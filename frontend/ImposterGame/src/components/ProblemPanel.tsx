@@ -36,6 +36,13 @@ export default function ProblemPanel() {
         setMessage("");
     };
 
+    const onMessageKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            if (canSend) onSendClick();
+        }
+    }
+
     if (!problem || problem.title === "" || problem.description === "" || problem.difficulty === "") {
         return null;
     }
@@ -197,6 +204,7 @@ export default function ProblemPanel() {
                                     className="w-full h-[50px] resize-none rounded-xl border border-gray-700 bg-brand-gray-light px-3 py-3 text-sm text-gray-200 placeholder-gray-500 outline-none focus:border-purple-600 transition-colors duration-200 custom-scrollbar"
                                     rows={1}
                                     maxLength={200}
+                                    onKeyDown={onMessageKeyDown}
                                 />
                             </div>
                             <button
