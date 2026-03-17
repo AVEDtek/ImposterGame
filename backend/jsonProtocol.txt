@@ -20,7 +20,7 @@ Frontend -> Backend:
     Response: unable-to-join
         errorMessage
 
-    Message: leave-room
+    Message: leave
         roomId
         playerId
 
@@ -46,6 +46,12 @@ Frontend -> Backend:
         timestamp
     Response: chat-update
         chat
+
+    Request: new-code
+        roomId
+        code
+    Response: new-code
+        code
 
     Request: run-test-cycle
         roomId

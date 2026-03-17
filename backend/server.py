@@ -7,6 +7,39 @@ from backend.models.game import GameState
 
 room_manager = RoomManager()
 
+async def handle_disconnect(room_id, player_id):
+    if (
+        room_id is not None
+        and player_id is not None
+        and room_manager.room_exists(room_id)
+    ):
+        room = room_manager.get_room(room_id)
+        if room.player_exists(player_id):
+            if room.game_started():
+                game = room.get_game()
+                await game.handle_player_disconnect(player_id)
+            else:
+                room.remove_player(player_id)
+
+            if room.get_number_of_players() == 0:
+                room_manager.remove_room(room_id)
+                print("Deleted empty room: " + room_id)
+            else:
+                response = {
+                    "type": "room-players-update",
+                    "playerList": room.get_players_ids()
+                }
+                await room.broadcast(response)
+                if room.game_started():
+                    game = room.get_game()
+                    response = {
+                        "type": "game-players-update",
+                        "playerList": game.get_player_ids(),
+                        "currentPlayer": game.players[game.current_player_idx].id,
+                        "chat": game.get_chat()
+                    }
+                    await room.broadcast(response)
+
 async def handler(websocket):
     print("Client connected")
     connected_room_id = None
@@ -110,7 +143,7 @@ async def handler(websocket):
                 }
                 await room.broadcast(response)
 
-            elif msg_type == "leave-room":
+            elif msg_type == "leave":
                 try:
                     room_id = data["roomId"]
                 except KeyError:
@@ -122,26 +155,7 @@ async def handler(websocket):
                     await websocket.send("Missing player ID")
                     continue
 
-                if not room_manager.room_exists(room_id):
-                    await websocket.send("No room found: " + room_id)
-                    continue
-
-                room = room_manager.get_room(room_id)
-                if not room.player_exists(player_id):
-                    await websocket.send("Player not found in room: " + player_id)
-                    continue
-
-                room.remove_player(player_id)
-
-                if room.get_number_of_players() == 0:
-                    room_manager.remove_room(room_id)
-                    print("Deleted empty room: " + room_id)
-                else:
-                    response = {
-                        "type": "room-players-update",
-                        "playerList": room.get_players_ids()
-                    }
-                    await room.broadcast(response)
+                await handle_disconnect(room_id, player_id)
 
                 connected_room_id = None
                 connected_player_id = None
@@ -309,6 +323,33 @@ async def handler(websocket):
                     "chat": game.get_chat()
                 }
                 await room.broadcast(response)
+
+            elif msg_type == "new-code":
+                try:
+                    room_id = data["roomId"]
+                except KeyError:
+                    await websocket.send("Missing room ID")
+                    continue
+                try:
+                    code = data["code"]
+                except KeyError:
+                    await websocket.send("Missing code")
+                    continue
+
+                if not room_manager.room_exists(room_id):
+                    await websocket.send("No room found: " + room_id)
+                    continue
+                
+                room = room_manager.get_room(room_id)
+                if not room.game_started():
+                    await websocket.send("Game not in progress")
+                    continue
+
+                response = {
+                    "type": "new-code",
+                    "code": code
+                }
+                await room.broadcast(response)
             
             elif msg_type == "run-test-cycle":
                 try:
@@ -418,12 +459,12 @@ async def handler(websocket):
                 if game.get_number_of_votes() == room.get_number_of_players():
                     await game.set_results()
 
-                response = {
-                    "type": "vote-over",
-                    "voted": game.get_voted(),
-                    "votedCorrectly": game.get_imposter_id() in game.get_voted(),
-                }
-                await room.broadcast(response)
+                    response = {
+                        "type": "vote-over",
+                        "voted": game.get_voted(),
+                        "votedCorrectly": game.get_imposter_id() in game.get_voted(),
+                    }
+                    await room.broadcast(response)
 
             elif msg_type == "get-health":
                 
@@ -438,37 +479,7 @@ async def handler(websocket):
     except websockets.exceptions.ConnectionClosed:
         print("Client disconnected")
     finally:
-        if (
-            connected_room_id is not None
-            and connected_player_id is not None
-            and room_manager.room_exists(connected_room_id)
-        ):
-            room = room_manager.get_room(connected_room_id)
-            if room.player_exists(connected_player_id):
-                if room.game_started():
-                    game = room.get_game()
-                    await game.handle_player_disconnect(connected_player_id)
-                else:
-                    room.remove_player(connected_player_id)
-
-                if room.get_number_of_players() == 0:
-                    room_manager.remove_room(connected_room_id)
-                    print("Deleted empty room: " + connected_room_id)
-                else:
-                    response = {
-                        "type": "room-players-update",
-                        "playerList": room.get_players_ids()
-                    }
-                    await room.broadcast(response)
-                    if room.game_started():
-                        game = room.get_game()
-                        response = {
-                            "type": "game-players-update",
-                            "playerList": game.get_player_ids(),
-                            "currentPlayer": game.players[game.current_player_idx].id,
-                            "chat": game.get_chat()
-                        }
-                        await room.broadcast(response)
+        await handle_disconnect(connected_room_id, connected_player_id)
 
 async def main():
     host = os.getenv("HOST", "0.0.0.0")

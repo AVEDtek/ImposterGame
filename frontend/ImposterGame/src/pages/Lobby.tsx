@@ -4,6 +4,7 @@ import { useRoom } from "../contexts/RoomContext.tsx";
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
+import Logo from "../components/Logo.tsx";
 import LobbyUserCard from "../components/LobbyUserCard.tsx";
 
 type LobbyLocationState = {
@@ -78,7 +79,7 @@ export default function Lobby() {
       return;
     }
     const request = {
-      type: "leave-room",
+      type: "leave",
       roomId: roomId,
       playerId: username
     };
@@ -86,17 +87,14 @@ export default function Lobby() {
     navigate("/");
   }
 
-  const canStartGame = players.length >= 2 && players[0] === username;
+  const canStartGame = players.length >= 3 && players[0] === username;
 
   return (
     <>
       <div className="min-h-screen bg-brand-black">
         <div className="px-5 pt-5 pb-3">
           <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between">
-            <h1 className="text-2xl font-extrabold tracking-tight">
-              <span className="text-purple-500">Cheet</span>
-              <span className="text-white">Code</span>
-            </h1>
+            <Logo />
             <span className="rounded-full border border-gray-700 bg-brand-gray px-3 py-1 text-xs font-semibold uppercase tracking-widest text-gray-300">
               Lobby
             </span>
@@ -180,7 +178,7 @@ export default function Lobby() {
                     <p className="text-gray-600 text-xs text-center">
                       {players[0] !== username
                         ? "Only the host can start"
-                        : "Need at least 2 players"}
+                        : "Need at least 3 players"}
                     </p>
                   )}
                 </div>
