@@ -175,8 +175,6 @@ async def handler(websocket):
                     except ValueError:
                         pass
 
-                            
-
                 response = {
                     "type": "config-updated",
                     "difficultyRange": config.difficulty_range,
@@ -222,7 +220,8 @@ async def handler(websocket):
                     "imposterId": game.get_imposter_id(),
                     "chat": game.get_chat(),
                     "problem": problem,
-                    "testCycle": test_cycle
+                    "testCycle": test_cycle,
+                    "masterTimer": room.config.master_timer
                 }
 
                 # broadcast briefing start (clients show modal)

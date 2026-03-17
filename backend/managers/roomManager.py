@@ -1,5 +1,6 @@
 import string
 import random
+import asyncio
 from backend.models.room import Room
 
 class RoomManager:
@@ -22,6 +23,7 @@ class RoomManager:
     def start_game_in_room(self, room_id):
         room = self.get_room(room_id)
         self.rooms[room_id] = room.create_game()
+        asyncio.create_task(room.start_game()) 
 
     def get_room(self, room_id):
         return self.rooms[room_id]

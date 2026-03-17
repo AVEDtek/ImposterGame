@@ -35,6 +35,8 @@ Difficulty:
 <button onclick="send({type:'start-game', roomId:rid()})">start-game</button>
 <button onclick="send({type:'player-ready', roomId:rid(), playerId:pid()})">player-ready</button>
 <br><br>
+Master timer: <span id="masterTimerDisplay">—</span>
+<br><br>
 
 <h4>Last problem received</h4>
 <table border="1" cellpadding="4" id="problem-table">
@@ -64,10 +66,10 @@ Difficulty:
 <br>
 <textarea id="log" rows="20" cols="80" readonly></textarea>
 
-
-
 <script>
   let ws = null;
+  let masterTimerInterval = null;
+  let masterTimeLeft = 0;
 
   const pid     = () => document.getElementById('playerId').value.trim();
   const rid     = () => document.getElementById('roomId').value.trim();
@@ -118,6 +120,10 @@ Difficulty:
           document.getElementById('p-difficulty').textContent = p.difficulty || '—';
           document.getElementById('p-topics').textContent = (p.topics || []).join(', ') || '—';
           document.getElementById('p-description').textContent = p.description || '—';
+          startMasterTimer(parseInt(document.getElementById('masterTimer').value) || 900);
+        }
+        if (d.type === 'vote-over') {
+          stopMasterTimer();
         }
       } catch(_) {}
     };
@@ -144,6 +150,24 @@ Difficulty:
     if (!msg) return;
     send({ type: 'send-message', roomId: rid(), playerId: pid(), message: msg, timestamp: Date.now() / 1000 });
     document.getElementById('chatMsg').value = '';
+  }
+
+  function startMasterTimer(seconds) {
+    stopMasterTimer();
+    masterTimeLeft = seconds;
+    document.getElementById('masterTimerDisplay').textContent = masterTimeLeft + 's';
+    masterTimerInterval = setInterval(() => {
+      masterTimeLeft--;
+      document.getElementById('masterTimerDisplay').textContent = masterTimeLeft + 's';
+      if (masterTimeLeft <= 0) stopMasterTimer();
+    }, 1000);
+  }
+
+  function stopMasterTimer() {
+    if (masterTimerInterval) {
+      clearInterval(masterTimerInterval);
+      masterTimerInterval = null;
+    }
   }
 </script>
 </body>

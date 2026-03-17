@@ -10,3 +10,7 @@ class roomConfig:
             self.difficulty_range = filtered  # now matches __init__
         else:
             self.difficulty_range = ['easy', 'medium', 'hard']
+
+    def set_master_timer(self, seconds: int):
+        if isinstance(seconds, int) and seconds > 0:
+            self.master_timer = seconds
