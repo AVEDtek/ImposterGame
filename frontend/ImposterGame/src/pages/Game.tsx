@@ -3,6 +3,7 @@ import { useGame } from "../contexts/GameContext.tsx";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
+import Logo from "../components/Logo.tsx";
 import BriefingPanel from "../components/BriefingPanel.tsx";
 import SideBar from "../components/SideBar.tsx";
 import VoteSideBar from "../components/VoteSideBar.tsx";
@@ -67,10 +68,7 @@ export default function Game() {
             <div className={`flex h-screen flex-col bg-brand-black transition-all duration-300 ${isBriefing ? "pointer-events-none select-none" : ""}`}>
                 <div className="px-5 pt-5 pb-3">
                     <div className="flex items-center justify-between">
-                        <h1 className="text-2xl font-extrabold tracking-tight">
-                            <span className="text-purple-500">Cheet</span>
-                            <span className="text-white">Code</span>
-                        </h1>
+                        <Logo />
                         <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-widest ${isBriefing ? "border-purple-500/30 bg-purple-500/10 text-purple-200" : "border-gray-700 bg-brand-gray text-gray-300"}`}>
                             {phaseLabel}
                         </span>
