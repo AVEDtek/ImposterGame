@@ -5,6 +5,9 @@
 ## 🧰 Python Backend Setup
 
 ### 1. Create a virtual environment
+```bash
+cd backend
+```
 
 ```bash
 python -m venv .venv
@@ -43,7 +46,7 @@ pip install -r requirements.txt
 ### 4. Run the project
 
 ```bash
-python main.py
+python -m backend.server.py
 ```
 
 ---
