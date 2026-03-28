@@ -59,23 +59,17 @@
                 "Sliding Window"
             ],
             "code": "def lengthOfLongestSubstring(s):\n    # Write your solution here\n    pass",
-            "testCycle": [
+            "test_cases": [
                 {
-                    "input": {
-                        "s": "abcabcbb"
-                    },
+                    "input": ["abcabcbb"],
                     "expected": 3
                 },
                 {
-                    "input": {
-                        "s": "bbbbb"
-                    },
+                    "input": ["bbbbb"],
                     "expected": 1
                 },
                 {
-                    "input": {
-                        "s": "pwwkew"
-                    },
+                    "input": ["pwwkew"],
                     "expected": 3
                 }
             ]
@@ -99,26 +93,17 @@
                 "Sliding Window"
             ],
             "code": "def minWindow(s, t):\n    # Write your solution here\n    pass",
-            "testCycle": [
+            "test_cases": [
                 {
-                    "input": {
-                        "s": "ADOBECODEBANC",
-                        "t": "ABC"
-                    },
+                    "input": ["ADOBECODEBANC", "ABC"],
                     "expected": "BANC"
                 },
                 {
-                    "input": {
-                        "s": "a",
-                        "t": "a"
-                    },
+                    "input": ["a", "a"],
                     "expected": "a"
                 },
                 {
-                    "input": {
-                        "s": "a",
-                        "t": "aa"
-                    },
+                    "input": ["a", "aa"],
                     "expected": ""
                 }
             ]
