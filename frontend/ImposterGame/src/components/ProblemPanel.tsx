@@ -120,7 +120,7 @@ export default function ProblemPanel() {
                                 <p className="leading-relaxed">{problem.description}</p>
 
                                 <div className="space-y-3">
-                                    {problem.examples.map((example: string, index: number) => (
+                                    {(problem.examples ?? []).map((example: string, index: number) => (
                                         <div key={index}>
                                             <p className="text-gray-300 text-sm font-semibold mb-1">Example {index + 1}</p>
                                             <pre className="bg-brand-gray-light border border-gray-700 p-3 rounded-xl whitespace-pre-wrap text-sm font-mono text-gray-300">
@@ -133,7 +133,7 @@ export default function ProblemPanel() {
                                 <div className="rounded-xl border border-gray-700 bg-brand-gray-light/40 p-4">
                                     <p className="text-xs uppercase tracking-widest font-semibold text-gray-500 mb-2">Constraints</p>
                                     <ul className="list-disc pl-5 space-y-1">
-                                        {problem.constraints.map((constraint: string, index: number) => (
+                                        {(problem.constraints ?? []).map((constraint: string, index: number) => (
                                             <li key={index} className="text-sm text-gray-400">
                                                 {constraint}
                                             </li>
@@ -152,7 +152,7 @@ export default function ProblemPanel() {
                                     <h2 className="text-base font-semibold text-gray-100">{roomId || "Lobby"}</h2>
                                 </div>
                                 <div className="rounded-full bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-400">
-                                    {players.length} online
+                                    {(players ?? []).length} online
                                 </div>
                             </div>
                         </div>

@@ -42,9 +42,9 @@ export default function VersionPanel() {
                             Commits
                         </h1>
                         <div className="flex min-h-0 flex-1 flex-col items-center overflow-y-auto custom-scrollbar px-4 pb-4 gap-2">
-                            {commits.map((commit, index) => (
+                            {(commits ?? []).map((commit, index) => (
                                 <div key={index} className="w-full">
-                                    <CommitCard index={index} username={commit.player_id} isFirst={index === 0} isLast={index === commits.length - 1} selected={index === selectedCommit} handleCommitClick={handleCommitClick} />
+                                    <CommitCard index={index} username={commit.player_id} isFirst={index === 0} isLast={index === (commits ?? []).length - 1} selected={index === selectedCommit} handleCommitClick={handleCommitClick} />
                                 </div>
                             ))}
                         </div>

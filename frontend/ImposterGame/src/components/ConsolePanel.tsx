@@ -102,7 +102,7 @@ export default function ConsolePanel({ height, isOpen, onResize }: ConsolePanelP
                     </div>
 
                     <div className="flex flex-wrap gap-1.5">
-                        {testCycle.map((_, index) => (
+                        {(testCycle ?? []).map((_, index) => (
                             
                             <div key={index}>
                                 {testCycle[index].visible ? 
