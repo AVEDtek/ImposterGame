@@ -53,11 +53,12 @@ class TestRunner:
             }
         
         response = requests.post(url, json=payload).json()
-        if response["status"] != "success":
+        print("RESPONSE", response)
+        if response.get("status", "") != "success":
             return Results(
                 returncode=1,
                 stdout="",
-                stderr=response['stderr'],
+                stderr=response.get('stderr', ''),
                 tests={'passed': False, 'results': []}
             )
         result = Results(

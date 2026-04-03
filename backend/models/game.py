@@ -138,8 +138,8 @@ class Game:
 
     def parse_results(self, result):
         try:
-            outputs = [r.get("output") for r in result.tests.get('results')]
-            passed = [r.get("passed") for r in result.tests.get('results')]
+            outputs = [r.get("output") for r in result.tests]
+            passed = [r.get("passed") for r in result.tests]
             all_passed = all(passed)
             return outputs, passed, all_passed
         except json.JSONDecodeError:
