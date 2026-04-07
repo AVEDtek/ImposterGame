@@ -4,14 +4,19 @@ import time
 import asyncio
 import os
 from typing import Optional
+from pathlib import Path
 
 from enum import Enum
 from typing import TypedDict
 from better_profanity import profanity
+from dotenv import load_dotenv
 
 from backend.managers.timeManager import TimeManager
 from backend.managers.testRunner import TestRunner
 from backend.models.types import TestCases, Problem, Results
+
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env")
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
 def _get_min_players_to_continue() -> int:
     raw = os.getenv("MIN_PLAYERS_TO_CONTINUE", "3")
@@ -56,6 +61,8 @@ class Game:
         self.chat = []
         self.load_chat()
         self.commits = []
+        self.voters = set()
+        self.tests_running = False
 
         self.problem, self.test_cases, self.constraints = self.load_random_problem()
         self.test_runner = TestRunner(self.test_cases, self.constraints)
@@ -141,11 +148,25 @@ class Game:
             return [None] * len(self.test_cases), [False] * len(self.test_cases), False
 
     def cast_vote(self, voter_id, voted_id):
+        if voter_id in self.voters:
+            return False
+
+        voter_exists = any(player.id == voter_id for player in self.players)
+        if not voter_exists:
+            return False
+
+        voted_exists = any(player.id == voted_id for player in self.players)
+        if not voted_exists:
+            return False
+
         self.add_message("System", f"{voter_id} has cast their vote.", time.time())
         for player in self.players:
             if player.id == voted_id:
                 player.add_vote()
+                self.voters.add(voter_id)
                 break
+
+        return True
 
     def set_ready(self, player_id):
         for player in self.players:

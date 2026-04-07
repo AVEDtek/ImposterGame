@@ -2,20 +2,65 @@ import asyncio
 import websockets
 import json
 import os
+import re
+
+from dotenv import load_dotenv
+from pathlib import Path
+
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
+load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
+
 from backend.managers.roomManager import RoomManager
 from backend.models.game import GameState
 
-def _get_min_players_to_start() -> int:
-    raw = os.getenv("MIN_PLAYERS_TO_START", "3")
+
+def _get_int_env(name: str, default: int, minimum: int) -> int:
+    raw = os.getenv(name, str(default))
     try:
         value = int(raw)
     except ValueError:
-        value = 3
-    return max(1, value)
+        value = default
+    return max(minimum, value)
+
+
+def _get_bool_env(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+def _get_min_players_to_start() -> int:
+    return _get_int_env("MIN_PLAYERS_TO_START", default=3, minimum=1)
 
 MIN_PLAYERS_TO_START = _get_min_players_to_start()
+MAX_WS_MESSAGE_BYTES = _get_int_env("MAX_WS_MESSAGE_BYTES", default=65536, minimum=1024)
+MAX_PLAYER_ID_LENGTH = _get_int_env("MAX_PLAYER_ID_LENGTH", default=24, minimum=3)
+MAX_CHAT_MESSAGE_LENGTH = _get_int_env("MAX_CHAT_MESSAGE_LENGTH", default=600, minimum=20)
+MAX_CODE_LENGTH = _get_int_env("MAX_CODE_LENGTH", default=30000, minimum=100)
+HEALTH_ENDPOINT_ENABLED = _get_bool_env("HEALTH_ENDPOINT_ENABLED", default=False)
+ROOM_ID_PATTERN = re.compile(r"^[A-Z0-9]{6}$")
 
 room_manager = RoomManager()
+
+
+def _is_valid_player_id(player_id) -> bool:
+    return (
+        isinstance(player_id, str)
+        and 1 <= len(player_id) <= MAX_PLAYER_ID_LENGTH
+        and player_id == player_id.strip()
+    )
+
+
+def _is_valid_room_id(room_id) -> bool:
+    return isinstance(room_id, str) and ROOM_ID_PATTERN.match(room_id) is not None
+
+
+def _is_authorized_player(connected_player_id, player_id) -> bool:
+    return connected_player_id is not None and connected_player_id == player_id
+
+
+def _is_authorized_room(connected_room_id, room_id) -> bool:
+    return connected_room_id is not None and connected_room_id == room_id
 
 async def handle_disconnect(room_id, player_id):
     if (
@@ -57,10 +102,22 @@ async def handler(websocket):
 
     try:
         async for message in websocket:
+            if not isinstance(message, str):
+                await websocket.send("Invalid message format")
+                continue
+
+            if len(message.encode("utf-8")) > MAX_WS_MESSAGE_BYTES:
+                await websocket.send("Message too large")
+                continue
+
             try:
                 data = json.loads(message)
             except json.JSONDecodeError:
                 await websocket.send("Invalid JSON")
+                continue
+
+            if not isinstance(data, dict):
+                await websocket.send("Message payload must be a JSON object")
                 continue
             
             try:
@@ -74,6 +131,14 @@ async def handler(websocket):
                     player_id = data["playerId"]
                 except KeyError:
                     await websocket.send("Missing player ID")
+                    continue
+
+                if connected_player_id is not None:
+                    await websocket.send("Connection already bound to a player")
+                    continue
+
+                if not _is_valid_player_id(player_id):
+                    await websocket.send("Invalid player ID")
                     continue
 
                 room_id = room_manager.create_room()
@@ -101,6 +166,18 @@ async def handler(websocket):
                     player_id = data["playerId"]
                 except KeyError:
                     await websocket.send("Missing player ID")
+                    continue
+
+                if connected_player_id is not None:
+                    await websocket.send("Connection already bound to a player")
+                    continue
+
+                if not _is_valid_room_id(room_id):
+                    await websocket.send("Invalid room ID")
+                    continue
+
+                if not _is_valid_player_id(player_id):
+                    await websocket.send("Invalid player ID")
                     continue
 
                 if not room_manager.room_exists(room_id):
@@ -165,6 +242,10 @@ async def handler(websocket):
                     await websocket.send("Missing player ID")
                     continue
 
+                if not _is_authorized_room(connected_room_id, room_id) or not _is_authorized_player(connected_player_id, player_id):
+                    await websocket.send("Unauthorized leave request")
+                    continue
+
                 await handle_disconnect(room_id, player_id)
 
                 connected_room_id = None
@@ -177,11 +258,19 @@ async def handler(websocket):
                     await websocket.send("Missing room ID")
                     continue
 
+                if not _is_authorized_room(connected_room_id, room_id):
+                    await websocket.send("Unauthorized room access")
+                    continue
+
                 if not room_manager.room_exists(room_id):
                     await websocket.send("No room found: " + room_id)
                     continue
                 
                 room = room_manager.get_room(room_id)
+
+                if not room.player_exists(connected_player_id):
+                    await websocket.send("Player not in room")
+                    continue
 
                 if room.get_number_of_players() < MIN_PLAYERS_TO_START:
                     await websocket.send(json.dumps({
@@ -219,6 +308,10 @@ async def handler(websocket):
                     player_id = data["playerId"]
                 except KeyError:
                     await websocket.send("Missing player ID")
+                    continue
+
+                if not _is_authorized_room(connected_room_id, room_id) or not _is_authorized_player(connected_player_id, player_id):
+                    await websocket.send("Unauthorized set-ready request")
                     continue
                     
                 if not room_manager.room_exists(room_id):
@@ -274,6 +367,14 @@ async def handler(websocket):
                     await websocket.send("Missing code")
                     continue
 
+                if not _is_authorized_room(connected_room_id, room_id) or not _is_authorized_player(connected_player_id, player_id):
+                    await websocket.send("Unauthorized next-turn request")
+                    continue
+
+                if not isinstance(code, str) or len(code) > MAX_CODE_LENGTH:
+                    await websocket.send("Invalid code payload")
+                    continue
+
                 if not room_manager.room_exists(room_id):
                     await websocket.send("No room found: " + room_id)
                     continue
@@ -323,6 +424,18 @@ async def handler(websocket):
                     await websocket.send("Missing timestamp")
                     continue
 
+                if not _is_authorized_room(connected_room_id, room_id) or not _is_authorized_player(connected_player_id, player_id):
+                    await websocket.send("Unauthorized send-message request")
+                    continue
+
+                if not isinstance(message, str) or len(message) > MAX_CHAT_MESSAGE_LENGTH:
+                    await websocket.send("Invalid message")
+                    continue
+
+                if not isinstance(timestamp, (int, float)):
+                    await websocket.send("Invalid timestamp")
+                    continue
+
                 if not room_manager.room_exists(room_id):
                     await websocket.send("No room found: " + room_id)
                     continue
@@ -351,6 +464,14 @@ async def handler(websocket):
                     code = data["code"]
                 except KeyError:
                     await websocket.send("Missing code")
+                    continue
+
+                if not _is_authorized_room(connected_room_id, room_id):
+                    await websocket.send("Unauthorized room access")
+                    continue
+
+                if not isinstance(code, str) or len(code) > MAX_CODE_LENGTH:
+                    await websocket.send("Invalid code payload")
                     continue
 
                 if not room_manager.room_exists(room_id):
@@ -385,6 +506,14 @@ async def handler(websocket):
                     await websocket.send("Missing code")
                     continue
 
+                if not _is_authorized_room(connected_room_id, room_id) or not _is_authorized_player(connected_player_id, player_id):
+                    await websocket.send("Unauthorized run-test-cycle request")
+                    continue
+
+                if not isinstance(code, str) or len(code) > MAX_CODE_LENGTH:
+                    await websocket.send("Invalid code payload")
+                    continue
+
                 if not room_manager.room_exists(room_id):
                     await websocket.send("No room found: " + room_id)
                     continue
@@ -400,7 +529,16 @@ async def handler(websocket):
                     await websocket.send("Coding not in progress")
                     continue
 
-                results = game.run_tests(code)              
+                if game.tests_running:
+                    await websocket.send(json.dumps({"type": "tests-running"}))
+                    continue
+
+                game.tests_running = True
+                loop = asyncio.get_event_loop()
+                try:
+                    results = await loop.run_in_executor(None, game.run_tests, code)
+                finally:
+                    game.tests_running = False
                 if results["returncode"] != 0:
                     outputs, passed = [results["stderr"]] * len(game.get_test_cases()), [False] * len(game.get_test_cases())
                     response = {
@@ -454,6 +592,10 @@ async def handler(websocket):
                     await websocket.send("Missing voted ID")
                     continue
 
+                if not _is_authorized_room(connected_room_id, room_id) or not _is_authorized_player(connected_player_id, voter_id):
+                    await websocket.send("Unauthorized cast-vote request")
+                    continue
+
                 if not room_manager.room_exists(room_id):
                     await websocket.send("No room found: " + room_id)
                     continue
@@ -469,7 +611,9 @@ async def handler(websocket):
                     await websocket.send("Voting not in progress")
                     continue
 
-                game.cast_vote(voter_id, voted_id)
+                if not game.cast_vote(voter_id, voted_id):
+                    await websocket.send("Invalid vote")
+                    continue
 
                 response = {
                     "type": "vote-casted",
@@ -489,6 +633,9 @@ async def handler(websocket):
                     await room.broadcast(response)
 
             elif msg_type == "get-health":
+                if not HEALTH_ENDPOINT_ENABLED:
+                    await websocket.send("Health endpoint disabled")
+                    continue
                 
                 response = {
                     "type": "health",
@@ -507,7 +654,7 @@ async def main():
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "5173"))
 
-    async with websockets.serve(handler, host, port):
+    async with websockets.serve(handler, host, port, max_size=MAX_WS_MESSAGE_BYTES):
         print(f"Running on ws://{host}:{port}")
         await asyncio.Future()
 
