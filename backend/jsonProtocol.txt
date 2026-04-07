@@ -32,6 +32,7 @@ Frontend -> Backend:
         chat
         problem
         testCycle
+        masterTimer # int (seconds) total coding phase duration
 
     Request: set-ready
         roomId
@@ -78,6 +79,14 @@ Frontend -> Backend:
     Response: vote-casted
         votes
         chat
+
+    Request: update-config
+        roomId
+        difficultyRange        # list e.g. ["medium", "hard"]
+        masterTimer            # int (seconds)
+    Response: config-updated
+        difficultyRange
+        masterTimer
 
 Backend -> Frontend
     Message: room-players-update

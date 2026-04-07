@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from backend.managers.timeManager import TimeManager
 from backend.managers.testRunner import TestRunner
 from backend.models.types import TestCases, Problem, Results
+from backend.models.roomConfig import roomConfig
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env")
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
@@ -46,8 +47,9 @@ class Commit(TypedDict):
     code: str
 
 class Game:
-    def __init__(self, players, room):
+    def __init__(self, players, room, config):
         self.room = room
+        self.config = config
 
         self.state = GameState.BRIEFING
 
@@ -64,28 +66,31 @@ class Game:
         self.voters = set()
         self.tests_running = False
 
-        self.problem, self.test_cases, self.constraints = self.load_random_problem()
+        self.problem, self.test_cases, self.constraints = self.load_random_problem(config.difficulty_range)
         self.test_runner = TestRunner(self.test_cases, self.constraints)
+    
+    async def start_game(self):
+        self.addMessage("System", f"{self.players[self.current_player_idx].id}'s turn to code", time.time())
+        self.timer_task = asyncio.create_task(self.start_timer(30))
 
-    def start_timer(self):
-        self.time_manager.briefing_timer_task = asyncio.create_task(self.time_manager.start_briefing_timer())
-
-    def init_players(self):
-        random.shuffle(self.players)
+    def assign_imposter(self):
         imposter = random.choice(self.players)
         imposter.set_imposter()
 
     def load_chat(self):
         self.add_message("System", "Chatroom is open. Keep your clues subtle.", time.time())
     
-    def load_random_problem(self) -> tuple[Problem, TestCases, list[str]]:
+    def load_random_problem_and_test_cycle(self, difficulty_range=None):
+        if difficulty_range is None:
+            difficulty_range = ['easy', 'medium', 'hard']
+
+
         file_path = 'backend/data/algorithm.json'
 
         with open(file_path) as f:
             data = json.load(f)
 
         problem_id = random.randrange(0, len(data["problems"]))
-        problem_id = 3
         problem_data = data["problems"][problem_id]
         
         constraints = problem_data.get("constraint_list", [])
@@ -101,6 +106,28 @@ class Game:
             "test_cases": problem_data["test_cases"],
             "constraint_list": constraints
         }
+
+        # you pick from the pool of problems that match the difficulty range, if none match you pick from the whole pool
+        pool = []
+        for p in problems.values():
+            if p["difficulty"].lower() in difficulty_range:
+                pool.append(p)
+
+        if not pool:
+            pool = list(problems.values())
+
+        print(f"difficulty_range received: {difficulty_range}")
+        print(f"pool size: {len(pool)}")
+        print(f"pool difficulties: {[p['difficulty'] for p in pool]}")
+
+        problem = random.choice(pool)
+
+        # find the id for this problem
+        problem_id = None
+        for pid, p in problems.items():
+            if p["title"] == problem["title"]:  # match by title, not object identity
+                problem_id = pid
+                break
 
         problem_obj: Problem = {
             "id": problem_id,
