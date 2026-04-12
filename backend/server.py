@@ -378,7 +378,7 @@ async def handle_run_tests(websocket, data):
     finally:
         game.tests_running = False
     if results["returncode"] != 0:
-        outputs, passed = [results["stderr"]] * len(game.get_test_cases()), [False] * len(game.get_test_cases())
+        outputs, passed = [results["stderr"]] * len(game.get_tests()), [False] * len(game.get_tests())
         response = {
             "type": "test-results",
             "error": True,
@@ -484,8 +484,10 @@ async def websocket_handler(websocket):
             try:
                 result = await handler_func(websocket, data)
                 if result:
-                    connected_room_id = result.get("roomId", connected_room_id)
-                    connected_player_id = result.get("playerId", connected_player_id)
+                    if "roomId" in result:
+                        connected_room_id = result['roomId']
+                    if "playerId" in result:
+                        connected_player_id = result['playerId']
             except Exception as e:
                 print(f"Error handling message of type {msg_type}: {str(e)}")
                 await websocket.send("Internal server error")
